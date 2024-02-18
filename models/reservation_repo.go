@@ -7,11 +7,11 @@ import (
 )
 
 type Reservation struct {
-	Id           int64
-	BookId       int64
-	ClientId     int64
-	CheckoutDate time.Time
-	ReturnDate   *time.Time
+	Id           int64      `json:"id" db:"id"`
+	BookId       int64      `json:"book_id" db:"book_id"`
+	UserId       int64      `json:"user_id" db:"user_id"`
+	CheckoutDate time.Time  `json:"checkout_date" db:"checkout_date"`
+	ReturnDate   *time.Time `json:"return_date" db:"return_date"`
 }
 
 func GetReservations() ([]Reservation, error) {
@@ -24,7 +24,7 @@ func GetReservations() ([]Reservation, error) {
 	var reservations []Reservation
 	for rows.Next() {
 		var res Reservation
-		err := rows.Scan(&res.Id, &res.BookId, &res.ClientId, &res.CheckoutDate, &res.ReturnDate)
+		err := rows.Scan(&res.Id, &res.BookId, &res.UserId, &res.CheckoutDate, &res.ReturnDate)
 		if err != nil {
 			return nil, err
 		}
@@ -38,32 +38,27 @@ func GetReservationById(id int64) (Reservation, error) {
 	var res Reservation
 
 	row := db.DB.QueryRow("SELECT * FROM reservations WHERE id = ?", id)
-	err := row.Scan(&res.Id, &res.BookId, &res.ClientId, &res.CheckoutDate, &res.ReturnDate)
-		if err != nil {
-			return res, err
-		}
+	err := row.Scan(&res.Id, &res.BookId, &res.UserId, &res.CheckoutDate, &res.ReturnDate)
+	if err != nil {
+		return res, err
+	}
 
 	return res, nil
 }
 
-func AddReservation(res Reservation) (int64, error) {
+func SaveReservation(res Reservation) error {
 	query := `
-	INSERT INTO reservations (book_id, client_id, checkout_date) 
+	INSERT INTO reservations (book_id, user_id, checkout_date) 
 	VALUES (?, ?, ?)
 	`
 	reservationDate := time.Now()
 
-	result, err := db.DB.Exec(query, res.BookId, res.ClientId, reservationDate)
+	_, err := db.DB.Exec(query, res.BookId, res.UserId, reservationDate)
 	if err != nil {
-		return 0, err
+		return err
 	}
 
-	reservationId, err := result.LastInsertId()
-	if err != nil {
-		return 0, err
-	}
-
-	return reservationId, nil
+	return nil
 }
 
 func UpdateReturnDate(id int64) error {

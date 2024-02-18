@@ -51,28 +51,29 @@ func createTables() {
 	}
 	log.Println("Table books was successfuly created!")
 
-	createClientsTable := `
-	CREATE TABLE IF NOT EXISTS clients (
+	createUsersTable := `
+	CREATE TABLE IF NOT EXISTS users (
 		id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
 		name VARCHAR(255) NOT NULL,
-		email VARCHAR(100) NOT NULL UNIQUE
+		email VARCHAR(100) NOT NULL UNIQUE,
+		password VARCHAR(100) NOT NULL UNIQUE
 	);
 	`
-	_, err = DB.Exec(createClientsTable)
+	_, err = DB.Exec(createUsersTable)
 	if err != nil {
-		panic("Cannot create clients table!")
+		panic("Cannot create users table!")
 	}
-	log.Println("Table clients was successfuly created!")
+	log.Println("Table users was successfuly created!")
 
 	createReservationsTable := `
 	CREATE TABLE IF NOT EXISTS reservations (
 		id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
 		book_id INT NOT NULL,
-		client_id INT NOT NULL,
+		user_id INT NOT NULL,
 		checkout_date DATETIME NOT NULL,
 		return_date DATETIME,
 		FOREIGN KEY (book_id) REFERENCES books(id),
-    	FOREIGN KEY (client_id) REFERENCES clients(id)
+    	FOREIGN KEY (user_id) REFERENCES users(id)
 	);
 	`
 	_, err = DB.Exec(createReservationsTable)
