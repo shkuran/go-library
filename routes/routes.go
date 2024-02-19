@@ -3,17 +3,18 @@ package routes
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/shkuran/go-library/auth"
+	"github.com/shkuran/go-library/controllers"
 )
 
 func RegisterRoutes(server *gin.Engine) {
-	server.GET("/reservations", getReservations)
-	server.POST("/reservations", auth.Authenticate, addReservation)
-	server.POST("/reservations/:id", auth.Authenticate, returnBook)
+	server.GET("/reservations", controllers.GetReservations)
+	server.POST("/reservations", auth.Authenticate, controllers.AddReservation)
+	server.POST("/reservations/:id", auth.Authenticate, controllers.ReturnBook)
 
-	server.GET("/books", getBooks)
-	server.POST("/books", addBook)
+	server.GET("/books", controllers.GetBooks)
+	server.POST("/books", controllers.AddBook)
 
-	server.POST("/signup", createUser)
-	server.POST("/login", login)
-	server.GET("/users", getUsers)
+	server.POST("/signup", controllers.CreateUser)
+	server.POST("/login", controllers.Login)
+	server.GET("/users", controllers.GetUsers)
 }
