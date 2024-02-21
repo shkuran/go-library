@@ -1,4 +1,4 @@
-package models
+package reservation
 
 import (
 	"time"
@@ -6,15 +6,7 @@ import (
 	"github.com/shkuran/go-library/db"
 )
 
-type Reservation struct {
-	Id           int64      `json:"id" db:"id"`
-	BookId       int64      `json:"book_id" db:"book_id"`
-	UserId       int64      `json:"user_id" db:"user_id"`
-	CheckoutDate time.Time  `json:"checkout_date" db:"checkout_date"`
-	ReturnDate   *time.Time `json:"return_date" db:"return_date"`
-}
-
-func GetReservations() ([]Reservation, error) {
+func getReservations() ([]Reservation, error) {
 	rows, err := db.DB.Query("SELECT * FROM reservations")
 	if err != nil {
 		return nil, err
@@ -34,7 +26,7 @@ func GetReservations() ([]Reservation, error) {
 	return reservations, nil
 }
 
-func GetReservationById(id int64) (Reservation, error) {
+func getReservationById(id int64) (Reservation, error) {
 	var res Reservation
 
 	row := db.DB.QueryRow("SELECT * FROM reservations WHERE id = ?", id)
@@ -46,7 +38,7 @@ func GetReservationById(id int64) (Reservation, error) {
 	return res, nil
 }
 
-func SaveReservation(res Reservation) error {
+func saveReservation(res Reservation) error {
 	query := `
 	INSERT INTO reservations (book_id, user_id, checkout_date) 
 	VALUES (?, ?, ?)
@@ -61,7 +53,7 @@ func SaveReservation(res Reservation) error {
 	return nil
 }
 
-func UpdateReturnDate(id int64) error {
+func updateReturnDate(id int64) error {
 	query := `
 	UPDATE reservations
 	SET return_date = ?

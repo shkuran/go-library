@@ -1,16 +1,16 @@
-package controllers
+package reservation
 
 import (
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/shkuran/go-library/models"
+	"github.com/shkuran/go-library/book"
 	"github.com/shkuran/go-library/utils"
 )
 
 func GetReservations(context *gin.Context) {
-	reservations, err := models.GetReservations()
+	reservations, err := getReservations()
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not fetch reservations!", err)
 		return
@@ -20,7 +20,7 @@ func GetReservations(context *gin.Context) {
 }
 
 func AddReservation(context *gin.Context) {
-	var reservation models.Reservation
+	var reservation Reservation
 	err := context.ShouldBindJSON(&reservation)
 	if err != nil {
 		utils.HandleBadRequest(context, "Could not parse request data!", err)
@@ -42,13 +42,13 @@ func AddReservation(context *gin.Context) {
 	userId := context.GetInt64("userId")
 	reservation.UserId = userId
 
-	err = models.SaveReservation(reservation)
+	err = saveReservation(reservation)
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not add reservation!", err)
 		return
 	}
 
-	err = updateAvailableCopies(book.Id, book.AvailableCopies-1)
+	err = updateNumberOfBooks(book.Id, book.AvailableCopies-1)
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not update the number of book copies!", err)
 		return
@@ -57,14 +57,14 @@ func AddReservation(context *gin.Context) {
 	utils.HandleStatusCreated(context, "Reservation added!")
 }
 
-func ReturnBook(context *gin.Context) {
+func CopleteReservation(context *gin.Context) {
 	reservationId, err := strconv.ParseInt(context.Param("id"), 10, 64)
 	if err != nil {
 		utils.HandleBadRequest(context, "Could not parse reservationId!", err)
 		return
 	}
 
-	reservation, err := models.GetReservationById(reservationId)
+	reservation, err := getReservationById(reservationId)
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not fetch reservation!", err)
 		return
@@ -81,7 +81,7 @@ func ReturnBook(context *gin.Context) {
 		return
 	}
 
-	err = models.UpdateReturnDate(reservationId)
+	err = updateReturnDate(reservationId)
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not copmlete reservation!", err)
 		return
@@ -93,7 +93,7 @@ func ReturnBook(context *gin.Context) {
 		return
 	}
 
-	err = updateAvailableCopies(book.Id, book.AvailableCopies+1)
+	err = updateNumberOfBooks(book.Id, book.AvailableCopies+1)
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not update the number of book copies!", err)
 		return
@@ -102,14 +102,14 @@ func ReturnBook(context *gin.Context) {
 	context.JSON(http.StatusOK, gin.H{"message": "Reservation copmleted!"})
 }
 
-func fetchBookById(bookId int64) (models.Book, error) {
-	book, err := models.GetBookById(bookId)
+func fetchBookById(bookId int64) (book.Book, error) {
+	b, err := book.GetBookById(bookId)
 	if err != nil {
-		return models.Book{}, err
+		return book.Book{}, err
 	}
-	return book, nil
+	return b, nil
 }
 
-func updateAvailableCopies(bookId, copies int64) error {
-	return models.UpdateAvailableCopies(bookId, copies)
+func updateNumberOfBooks(bookId, copies int64) error {
+	return book.UpdateAvailableCopies(bookId, copies)
 }

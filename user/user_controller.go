@@ -1,21 +1,20 @@
-package controllers
+package user
 
 import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/shkuran/go-library/models"
 	"github.com/shkuran/go-library/utils"
 )
 
 func CreateUser(context *gin.Context) {
-	var user models.User
+	var user User
 	err := context.ShouldBindJSON(&user)
 	if err != nil {
 		utils.HandleBadRequest(context, "Could not parse request data!", err)
 		return
 	}
-	err = models.SaveUser(user)
+	err = saveUser(user)
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not create user!", err)
 		return
@@ -24,7 +23,7 @@ func CreateUser(context *gin.Context) {
 }
 
 func GetUsers(context *gin.Context) {
-	users, err := models.GetUsers()
+	users, err := getUsers()
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not fetch users!", err)
 		return
@@ -33,14 +32,14 @@ func GetUsers(context *gin.Context) {
 }
 
 func Login(context *gin.Context) {
-	var user models.User
+	var user User
 	err := context.ShouldBindJSON(&user)
 	if err != nil {
 		utils.HandleBadRequest(context, "Could not parse request data!", err)
 		return
 	}
 
-	err = models.ValidateCredentials(&user)
+	err = validateCredentials(&user)
 	if err != nil {
 		utils.HandleStatusUnauthorized(context, "Could not authenticate user!", err)
 		return
