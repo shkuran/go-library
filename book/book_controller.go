@@ -7,8 +7,10 @@ import (
 	"github.com/shkuran/go-library/utils"
 )
 
+var getBooksFunc = getBooks // for mocking
+
 func GetBooks(context *gin.Context) {
-	books, err := getBooks()
+	books, err := getBooksFunc()
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not fetch books!", err)
 		return
