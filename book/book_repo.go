@@ -2,7 +2,7 @@ package book
 
 import "github.com/shkuran/go-library/db"
 
-func GetBookById(id int64) (Book, error) {
+func getBookById(id int64) (Book, error) {
 	var book Book
 
 	row := db.DB.QueryRow("SELECT * FROM books WHERE id = ?", id)
@@ -14,7 +14,7 @@ func GetBookById(id int64) (Book, error) {
 	return book, nil
 }
 
-func UpdateAvailableCopies(id, copies int64) error {
+func updateAvailableCopies(id, copies int64) error {
 	query := `
 	UPDATE books
 	SET available_copies = ?

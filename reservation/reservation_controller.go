@@ -27,13 +27,13 @@ func AddReservation(context *gin.Context) {
 		return
 	}
 
-	book, err := fetchBookById(reservation.BookId)
+	b, err := book.GetBookById(reservation.BookId)
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not fetch book!", err)
 		return
 	}
 
-	numberOfBookCopies := book.AvailableCopies
+	numberOfBookCopies := b.AvailableCopies
 	if numberOfBookCopies < 1 {
 		utils.HandleBadRequest(context, "The book is not available!", nil)
 		return
@@ -48,7 +48,7 @@ func AddReservation(context *gin.Context) {
 		return
 	}
 
-	err = updateNumberOfBooks(book.Id, book.AvailableCopies-1)
+	err = book.UpdateNumberOfBooks(b.Id, b.AvailableCopies-1)
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not update the number of book copies!", err)
 		return
@@ -87,29 +87,17 @@ func CopleteReservation(context *gin.Context) {
 		return
 	}
 
-	book, err := fetchBookById(reservation.BookId)
+	b, err := book.GetBookById(reservation.BookId)
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not fetch book!", err)
 		return
 	}
 
-	err = updateNumberOfBooks(book.Id, book.AvailableCopies+1)
+	err = book.UpdateNumberOfBooks(b.Id, b.AvailableCopies+1)
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not update the number of book copies!", err)
 		return
 	}
 
 	context.JSON(http.StatusOK, gin.H{"message": "Reservation copmleted!"})
-}
-
-func fetchBookById(bookId int64) (book.Book, error) {
-	b, err := book.GetBookById(bookId)
-	if err != nil {
-		return book.Book{}, err
-	}
-	return b, nil
-}
-
-func updateNumberOfBooks(bookId, copies int64) error {
-	return book.UpdateAvailableCopies(bookId, copies)
 }
