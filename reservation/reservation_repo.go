@@ -16,7 +16,7 @@ func getReservations() ([]Reservation, error) {
 	var reservations []Reservation
 	for rows.Next() {
 		var res Reservation
-		err := rows.Scan(&res.Id, &res.BookId, &res.UserId, &res.CheckoutDate, &res.ReturnDate)
+		err := rows.Scan(&res.ID, &res.BookId, &res.UserId, &res.CheckoutDate, &res.ReturnDate)
 		if err != nil {
 			return nil, err
 		}
@@ -30,7 +30,7 @@ func getReservationById(id int64) (Reservation, error) {
 	var res Reservation
 
 	row := db.DB.QueryRow("SELECT * FROM reservations WHERE id = ?", id)
-	err := row.Scan(&res.Id, &res.BookId, &res.UserId, &res.CheckoutDate, &res.ReturnDate)
+	err := row.Scan(&res.ID, &res.BookId, &res.UserId, &res.CheckoutDate, &res.ReturnDate)
 	if err != nil {
 		return res, err
 	}

@@ -1,7 +1,7 @@
 package book
 
 type Book struct {
-	Id              int64  `json:"id" db:"id"`
+	ID              int64  `json:"id" db:"id"`
 	Title           string `json:"title" db:"title" binding:"required"`
 	Author          string `json:"author" db:"author" binding:"required"`
 	ISBN            string `json:"isbn" db:"isbn" binding:"required"`

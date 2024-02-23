@@ -48,7 +48,7 @@ func AddReservation(context *gin.Context) {
 		return
 	}
 
-	err = book.UpdateNumberOfBooks(b.Id, b.AvailableCopies-1)
+	err = book.UpdateNumberOfBooks(b.ID, b.AvailableCopies-1)
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not update the number of book copies!", err)
 		return
@@ -93,7 +93,7 @@ func CopleteReservation(context *gin.Context) {
 		return
 	}
 
-	err = book.UpdateNumberOfBooks(b.Id, b.AvailableCopies+1)
+	err = book.UpdateNumberOfBooks(b.ID, b.AvailableCopies+1)
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not update the number of book copies!", err)
 		return

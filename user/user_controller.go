@@ -45,7 +45,7 @@ func Login(context *gin.Context) {
 		return
 	}
 
-	token, err := utils.GenerateToken(user.Email, user.Id)
+	token, err := utils.GenerateToken(user.Email, user.ID)
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not generate token!", err)
 		return

@@ -6,7 +6,7 @@ func getBookById(id int64) (Book, error) {
 	var book Book
 
 	row := db.DB.QueryRow("SELECT * FROM books WHERE id = ?", id)
-	err := row.Scan(&book.Id, &book.Title, &book.Author, &book.ISBN, &book.PublicationYear, &book.AvailableCopies)
+	err := row.Scan(&book.ID, &book.Title, &book.Author, &book.ISBN, &book.PublicationYear, &book.AvailableCopies)
 	if err != nil {
 		return book, err
 	}
@@ -50,7 +50,7 @@ func getBooks() ([]Book, error) {
 	var books []Book
 	for rows.Next() {
 		var book Book
-		err := rows.Scan(&book.Id, &book.Title, &book.Author, &book.ISBN, &book.PublicationYear, &book.AvailableCopies)
+		err := rows.Scan(&book.ID, &book.Title, &book.Author, &book.ISBN, &book.PublicationYear, &book.AvailableCopies)
 		if err != nil {
 			return nil, err
 		}

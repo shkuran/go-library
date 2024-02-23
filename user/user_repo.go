@@ -11,7 +11,7 @@ func GetUserById(id int64) (User, error) {
 	var user User
 
 	row := db.DB.QueryRow("SELECT * FROM users WHERE id = ?", id)
-	err := row.Scan(&user.Id, &user.Name, &user.Email, &user.Password)
+	err := row.Scan(&user.ID, &user.Name, &user.Email, &user.Password)
 	if err != nil {
 		return user, err
 	}
@@ -48,7 +48,7 @@ func getUsers() ([]User, error) {
 	var users []User
 	for rows.Next() {
 		var user User
-		err := rows.Scan(&user.Id, &user.Name, &user.Email, &user.Password)
+		err := rows.Scan(&user.ID, &user.Name, &user.Email, &user.Password)
 		if err != nil {
 			return nil, err
 		}
@@ -63,7 +63,7 @@ func validateCredentials(u *User) error {
 	row := db.DB.QueryRow(query, u.Email)
 
 	var passFromDB string
-	err := row.Scan(&u.Id, &passFromDB)
+	err := row.Scan(&u.ID, &passFromDB)
 	if err != nil {
 		return errors.New("invalid credentials")
 	}
