@@ -7,10 +7,8 @@ import (
 	"github.com/shkuran/go-library/utils"
 )
 
-var getBooksFunc = getBooks // for mocking
-
-func GetBooks(context *gin.Context) {
-	books, err := getBooksFunc()
+func GetBooks(context *gin.Context, getBooks func() ([]Book, error)) {
+	books, err := getBooks()
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not fetch books!", err)
 		return
@@ -19,13 +17,13 @@ func GetBooks(context *gin.Context) {
 }
 
 func AddBook(context *gin.Context) {
-	var user Book
-	err := context.ShouldBindJSON(&user)
+	var b Book
+	err := context.ShouldBindJSON(&b)
 	if err != nil {
 		utils.HandleBadRequest(context, "Could not parse request data!", err)
 		return
 	}
-	err = saveBook(user)
+	err = saveBook(b)
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not add book!", err)
 		return

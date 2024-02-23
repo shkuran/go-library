@@ -13,7 +13,9 @@ func RegisterRoutes(server *gin.Engine) {
 	server.POST("/reservations", auth.Authenticate, reservation.AddReservation)
 	server.POST("/reservations/:id", auth.Authenticate, reservation.CopleteReservation)
 
-	server.GET("/books", book.GetBooks)
+	server.GET("/books", func(context *gin.Context) {
+        book.GetBooks(context, book.GetBooksFromDB)
+    })
 	server.POST("/books", book.AddBook)
 
 	server.POST("/signup", user.CreateUser)
