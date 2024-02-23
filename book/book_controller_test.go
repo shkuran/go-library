@@ -2,121 +2,92 @@ package book
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"testing"
 
 	"github.com/gin-gonic/gin"
 )
 
 func TestGetBooks(t *testing.T) {
-	testBooks := []Book{
+
+	testCases := []struct {
+		name             string
+		getBooksFunc     func() ([]Book, error)
+		expectedCode     int
+		expectedBooks    []Book
+		expectedErrorMsg string
+	}{
+		// Case 1: getBooks returns []Book
 		{
-			Id:              1,
-			Title:           "Test Book 1",
-			Author:          "Test Author 1",
-			ISBN:            "isbn",
-			PublicationYear: 1986,
-			AvailableCopies: 5,
+			name: "Success",
+			getBooksFunc: func() ([]Book, error) {
+				return []Book{{ID: 1, Title: "Book 1"}, {ID: 2, Title: "Book 2"}}, nil
+			},
+			expectedCode:     http.StatusOK,
+			expectedBooks:    []Book{{ID: 1, Title: "Book 1"}, {ID: 2, Title: "Book 2"}},
+			expectedErrorMsg: "",
 		},
+		// Case 2: getBooks returns an error
 		{
-			Id:              2,
-			Title:           "Test Book 2",
-			Author:          "Test Author 2",
-			ISBN:            "isbn",
-			PublicationYear: 1986,
-			AvailableCopies: 5,
+			name: "Error",
+			getBooksFunc: func() ([]Book, error) {
+				return nil, errors.New("Simulated error fetching books")
+			},
+			expectedCode:     http.StatusInternalServerError,
+			expectedBooks:    nil,
+			expectedErrorMsg: "Could not fetch books!",
 		},
 	}
 
-	// Save the original getBooks function
-	originalGetBooksFunc := getBooksFunc
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			router := gin.Default()
 
-	// Mock the getBooks function
-	getBooksFunc = func() ([]Book, error) {
-		return testBooks, nil
+			router.GET("/books", func(context *gin.Context) {
+				GetBooks(context, tc.getBooksFunc)
+			})
+
+			// Perform a test request
+			req, err := http.NewRequest("GET", "/books", nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			// Create a response recorder to record the response
+			w := httptest.NewRecorder()
+
+			// Serve the request
+			router.ServeHTTP(w, req)
+
+			if w.Code != tc.expectedCode {
+				t.Errorf("Expected status %d; got %d", tc.expectedCode, w.Code)
+			}
+
+			if tc.expectedErrorMsg != "" {
+				// Check if the response contains the expected error message
+				var response map[string]string
+				err = json.Unmarshal(w.Body.Bytes(), &response)
+				if err != nil {
+					t.Fatal(err)
+				}
+				if response["message"] != tc.expectedErrorMsg {
+					t.Errorf("Expected error message '%s'; got '%s'", tc.expectedErrorMsg, response["message"])
+				}
+			} else {
+				// Check if the response matches the expected books
+				var responseBooks []Book
+				err = json.Unmarshal(w.Body.Bytes(), &responseBooks)
+				if err != nil {
+					t.Fatal(err)
+				}
+				if !reflect.DeepEqual(tc.expectedBooks, responseBooks) {
+					t.Errorf("Expected %+v; got %+v", tc.expectedBooks, responseBooks)
+				}
+			}
+		})
 	}
-	defer func() {
-		// Restore the original getBooksFunc after the test
-		getBooksFunc = originalGetBooksFunc
-	}()
 
-	// Create a new Gin router
-	router := gin.Default()
-
-	// Set up the test route using the GetBooks handler
-	router.GET("/books", GetBooks)
-
-	// Perform a GET request to the /books endpoint
-	req, err := http.NewRequest("GET", "/books", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// Create a response recorder to record the response
-	w := httptest.NewRecorder()
-
-	// Serve the request
-	router.ServeHTTP(w, req)
-
-	// Check the response status code
-	if w.Code != http.StatusOK {
-		t.Errorf("Expected status %d; got %d", http.StatusOK, w.Code)
-	}
-
-	// Parse the response body to check its content
-	var responseBooks []Book
-	err = json.Unmarshal(w.Body.Bytes(), &responseBooks)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// Check if the response matches the expected mock data
-	expectedBooks := testBooks
-	if !booksSliceEqual(expectedBooks, responseBooks) {
-		t.Errorf("Expected %+v; got %+v", expectedBooks, responseBooks)
-	}
 }
-
-// booksSliceEqual checks if two slices of books are equal
-func booksSliceEqual(slice1, slice2 []Book) bool {
-	if len(slice1) != len(slice2) {
-		return false
-	}
-
-	for i := range slice1 {
-		if slice1[i] != slice2[i] {
-			return false
-		}
-	}
-
-	return true
-}
-
-// func TestAddBook(t *testing.T) {
-// 	r := setupRouter()
-
-// 	newBook := Book{
-// 		Title: "Test Book",
-// 		Author: "Test Author",
-// 		ISBN: "isbn",
-// 		PublicationYear: 1986,
-// 		AvailableCopies: 5,
-// 	}
-// 	newBookJSON, _ := json.Marshal(newBook)
-// 	reqAdd := httptest.NewRequest("POST", "/books", bytes.NewBuffer(newBookJSON))
-// 	reqAdd.Header.Set("Content-Type", "application/json")
-// 	wAdd := httptest.NewRecorder()
-// 	r.ServeHTTP(wAdd, reqAdd)
-
-// 	if wAdd.Code != http.StatusCreated {
-// 		t.Errorf("Expected status %d; got %d", http.StatusCreated, wAdd.Code)
-// 	}
-// }
-
-// func setupRouter() *gin.Engine {
-// 	r := gin.Default()
-// 	r.GET("/books", GetBooks)
-// 	r.POST("/books", AddBook)
-// 	return r
-// }
