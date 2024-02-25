@@ -7,8 +7,16 @@ import (
 	"github.com/shkuran/go-library/utils"
 )
 
-func GetBooks(context *gin.Context, getBooks func() ([]Book, error)) {
-	books, err := getBooks()
+type BooksController struct {
+	repo Repository
+}
+
+func NewBooksController(repo Repository) BooksController {
+	return BooksController{repo: repo}
+}
+
+func (svc BooksController) GetBooks(context *gin.Context) {
+	books, err := svc.repo.GetBooks()
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not fetch books!", err)
 		return
@@ -16,14 +24,14 @@ func GetBooks(context *gin.Context, getBooks func() ([]Book, error)) {
 	context.JSON(http.StatusOK, books)
 }
 
-func AddBook(context *gin.Context) {
+func (svc BooksController) AddBook(context *gin.Context) {
 	var b Book
 	err := context.ShouldBindJSON(&b)
 	if err != nil {
 		utils.HandleBadRequest(context, "Could not parse request data!", err)
 		return
 	}
-	err = saveBook(b)
+	err = svc.repo.SaveBook(b)
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not add book!", err)
 		return

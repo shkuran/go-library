@@ -8,3 +8,14 @@ type Book struct {
 	PublicationYear int64  `json:"publication_year" db:"publication_year" binding:"required"`
 	AvailableCopies int64  `json:"available_copies" db:"available_copies" binding:"required"`
 }
+
+func NewBook(id int64, title string, author string, isbn string, pubYear int64, availableCopies int64) Book {
+	return Book{
+		ID:              id,
+		Title:           title,
+		Author:          author,
+		ISBN:            isbn,
+		PublicationYear: pubYear,
+		AvailableCopies: availableCopies,
+	}
+}

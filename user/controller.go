@@ -7,21 +7,15 @@ import (
 	"github.com/shkuran/go-library/utils"
 )
 
-type UserController interface {
-	CreateUser(context *gin.Context)
-	GetUsers(context *gin.Context)
-	Login(context *gin.Context)
-}
-
-type UserControllerImpl struct {
+type UserController struct {
 	repo Repository
 }
 
-func NewUserController(repo Repository) *UserControllerImpl {
-	return &UserControllerImpl{repo: repo}
+func NewUserController(repo Repository) UserController {
+	return UserController{repo: repo}
 }
 
-func (ctr UserControllerImpl) CreateUser(context *gin.Context) {
+func (ctr UserController) CreateUser(context *gin.Context) {
 	var user User
 	err := context.ShouldBindJSON(&user)
 	if err != nil {
@@ -36,7 +30,7 @@ func (ctr UserControllerImpl) CreateUser(context *gin.Context) {
 	utils.HandleStatusCreated(context, "User created!")
 }
 
-func (ctr UserControllerImpl) GetUsers(context *gin.Context) {
+func (ctr UserController) GetUsers(context *gin.Context) {
 	users, err := ctr.repo.GetUsers()
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not fetch users!", err)
@@ -45,7 +39,7 @@ func (ctr UserControllerImpl) GetUsers(context *gin.Context) {
 	context.JSON(http.StatusOK, users)
 }
 
-func (ctr UserControllerImpl) Login(context *gin.Context) {
+func (ctr UserController) Login(context *gin.Context) {
 	var user User
 	err := context.ShouldBindJSON(&user)
 	if err != nil {
