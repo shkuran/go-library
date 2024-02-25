@@ -16,10 +16,10 @@ type ReservationController interface {
 }
 
 type ReservationControllerImpl struct {
-	repo *Repository
+	repo Repository
 }
 
-func NewReservationController(repo *Repository) *ReservationControllerImpl {
+func NewReservationController(repo Repository) *ReservationControllerImpl {
 	return &ReservationControllerImpl{repo: repo}
 }
 

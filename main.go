@@ -22,8 +22,7 @@ func main() {
 
 	server := gin.Default()
 
-	reservation_db := reservation.NewMySQL(mysql)
-	reservation_repo := reservation.NewRepository(reservation_db)
+	reservation_repo := reservation.NewMySQLRepository(mysql)
 	reservation_controller := reservation.NewReservationController(reservation_repo)
 
 	user_repo := user.NewMySQLRepository(mysql)
