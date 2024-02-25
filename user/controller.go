@@ -7,14 +7,28 @@ import (
 	"github.com/shkuran/go-library/utils"
 )
 
-func CreateUser(context *gin.Context) {
+type UserController interface {
+	CreateUser(context *gin.Context)
+	GetUsers(context *gin.Context)
+	Login(context *gin.Context)
+}
+
+type UserControllerImpl struct {
+	repo Repository
+}
+
+func NewUserController(repo Repository) *UserControllerImpl {
+	return &UserControllerImpl{repo: repo}
+}
+
+func (ctr UserControllerImpl) CreateUser(context *gin.Context) {
 	var user User
 	err := context.ShouldBindJSON(&user)
 	if err != nil {
 		utils.HandleBadRequest(context, "Could not parse request data!", err)
 		return
 	}
-	err = saveUser(user)
+	err = ctr.repo.SaveUser(user)
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not create user!", err)
 		return
@@ -22,8 +36,8 @@ func CreateUser(context *gin.Context) {
 	utils.HandleStatusCreated(context, "User created!")
 }
 
-func GetUsers(context *gin.Context) {
-	users, err := getUsers()
+func (ctr UserControllerImpl) GetUsers(context *gin.Context) {
+	users, err := ctr.repo.GetUsers()
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not fetch users!", err)
 		return
@@ -31,7 +45,7 @@ func GetUsers(context *gin.Context) {
 	context.JSON(http.StatusOK, users)
 }
 
-func Login(context *gin.Context) {
+func (ctr UserControllerImpl) Login(context *gin.Context) {
 	var user User
 	err := context.ShouldBindJSON(&user)
 	if err != nil {
@@ -39,7 +53,7 @@ func Login(context *gin.Context) {
 		return
 	}
 
-	err = validateCredentials(&user)
+	err = ctr.repo.ValidateCredentials(&user)
 	if err != nil {
 		utils.HandleStatusUnauthorized(context, "Could not authenticate user!", err)
 		return

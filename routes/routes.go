@@ -8,7 +8,7 @@ import (
 	"github.com/shkuran/go-library/user"
 )
 
-func RegisterRoutes(server *gin.Engine, reservation reservation.ReservationController) {
+func RegisterRoutes(server *gin.Engine, reservation reservation.ReservationController, user user.UserController) {
 	server.GET("/reservations", reservation.GetReservations)
 	server.POST("/reservations", auth.Authenticate, reservation.AddReservation)
 	server.POST("/reservations/:id", auth.Authenticate, reservation.CompleteReservation)
