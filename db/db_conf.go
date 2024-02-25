@@ -7,9 +7,7 @@ import (
 	"github.com/go-sql-driver/mysql"
 )
 
-var DB *sql.DB
-
-func InitDB() {
+func InitDB() (*sql.DB, error) {
 	cfg := mysql.Config{
 		User:      "root",
 		Passwd:    "root",
@@ -18,23 +16,27 @@ func InitDB() {
 		DBName:    "library",
 		ParseTime: true,
 	}
-
+	var db *sql.DB
 	var err error
-	DB, err = sql.Open("mysql", cfg.FormatDSN())
+
+	db, err = sql.Open("mysql", cfg.FormatDSN())
 	if err != nil {
 		log.Fatal(err)
+		return nil, err
 	}
 
-	pingErr := DB.Ping()
+	pingErr := db.Ping()
 	if pingErr != nil {
 		log.Fatal(pingErr)
+		return nil, pingErr
+
 	}
 	log.Println("Connected!")
 
-	createTables()
+	return db, nil
 }
 
-func createTables() {
+func CreateTables(db *sql.DB) {
 	createBooksTable := `
 	CREATE TABLE IF NOT EXISTS books (
 		id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
@@ -45,7 +47,7 @@ func createTables() {
     	available_copies INT
 	);
 	`
-	_, err := DB.Exec(createBooksTable)
+	_, err := db.Exec(createBooksTable)
 	if err != nil {
 		panic("Cannot create books table!")
 	}
@@ -59,7 +61,7 @@ func createTables() {
 		password VARCHAR(100) NOT NULL UNIQUE
 	);
 	`
-	_, err = DB.Exec(createUsersTable)
+	_, err = db.Exec(createUsersTable)
 	if err != nil {
 		panic("Cannot create users table!")
 	}
@@ -76,7 +78,7 @@ func createTables() {
     	FOREIGN KEY (user_id) REFERENCES users(id)
 	);
 	`
-	_, err = DB.Exec(createReservationsTable)
+	_, err = db.Exec(createReservationsTable)
 	if err != nil {
 		panic("Cannot create reservations table!")
 	}

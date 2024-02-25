@@ -8,16 +8,12 @@ import (
 	"github.com/shkuran/go-library/user"
 )
 
-func RegisterRoutes(server *gin.Engine) {
+func RegisterRoutes(server *gin.Engine, reservation reservation.ReservationController, user user.UserController, book book.BooksController) {
 	server.GET("/reservations", reservation.GetReservations)
 	server.POST("/reservations", auth.Authenticate, reservation.AddReservation)
-	server.POST("/reservations/:id", auth.Authenticate, reservation.CopleteReservation)
-
-	server.GET("/books", func(context *gin.Context) {
-        book.GetBooks(context, book.GetBooksFromDB)
-    })
+	server.POST("/reservations/:id", auth.Authenticate, reservation.CompleteReservation)
+	server.GET("/books", book.GetBooks)
 	server.POST("/books", book.AddBook)
-
 	server.POST("/signup", user.CreateUser)
 	server.POST("/login", user.Login)
 	server.GET("/users", user.GetUsers)
