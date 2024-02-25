@@ -9,8 +9,18 @@ import (
 	"github.com/shkuran/go-library/utils"
 )
 
-func GetReservations(context *gin.Context) {
-	reservations, err := getReservations()
+type ReservationController interface {
+	func GetReservations(context *gin.Context)
+	func AddReservation(context *gin.Context)
+	func CompleteReservation(context *gin.Context)
+}
+
+type ReservationControllerImpl struct {
+	repo: Repository
+}
+
+func (rsv ReservationControllerImpl) GetReservations(context *gin.Context) {
+	reservations, err := rsv.repo.GetReservations()
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not fetch reservations!", err)
 		return
@@ -57,7 +67,7 @@ func AddReservation(context *gin.Context) {
 	utils.HandleStatusCreated(context, "Reservation added!")
 }
 
-func CopleteReservation(context *gin.Context) {
+func CompleteReservation(context *gin.Context) {
 	reservationId, err := strconv.ParseInt(context.Param("id"), 10, 64)
 	if err != nil {
 		utils.HandleBadRequest(context, "Could not parse reservationId!", err)
