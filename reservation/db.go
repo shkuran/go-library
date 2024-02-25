@@ -1,3 +1,5 @@
+package reservation
+
 import (
 	"database/sql"
 	"time"
@@ -15,17 +17,17 @@ type InMemory struct {
 }
 
 func NewInMemory() *InMemory {
-	MySQL{m: make(map[int64]Reservation)}
+	return &InMemory{m: make(map[int64]Reservation)}
 }
 
 func (in_memory *InMemory) GetReservations() ([]Reservation, error) {
-	v := make([]string, 0, len(m))
+	v := make([]Reservation, 0, len(in_memory.m))
 
-	for _, value := range m {
+	for _, value := range in_memory.m {
 		v = append(v, value)
 	}
 
-	return v
+	return v, nil
 }
 
 // implemente everything else
@@ -35,7 +37,7 @@ type MySQL struct {
 }
 
 func NewMySQL(db *sql.DB) *MySQL {
-	MySQL{db: db}
+	return &MySQL{db: db}
 }
 
 func (mysql *MySQL) GetReservations() ([]Reservation, error) {
@@ -58,7 +60,7 @@ func (mysql *MySQL) GetReservations() ([]Reservation, error) {
 	return reservations, nil
 }
 
-func (db *MySQL) GetReservationById(id int64) (Reservation, error) {
+func (mysql *MySQL) GetReservationById(id int64) (Reservation, error) {
 	var res Reservation
 
 	row := mysql.db.QueryRow("SELECT * FROM reservations WHERE id = ?", id)

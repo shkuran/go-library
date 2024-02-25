@@ -5,7 +5,7 @@ type Repository struct {
 }
 
 func NewRepository(db DB) *Repository {
-	Repository{db: db}
+	return &Repository{db: db}
 }
 
 func (r *Repository) GetReservations() ([]Reservation, error) {

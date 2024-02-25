@@ -10,13 +10,17 @@ import (
 )
 
 type ReservationController interface {
-	func GetReservations(context *gin.Context)
-	func AddReservation(context *gin.Context)
-	func CompleteReservation(context *gin.Context)
+	GetReservations(context *gin.Context)
+	AddReservation(context *gin.Context)
+	CompleteReservation(context *gin.Context)
 }
 
 type ReservationControllerImpl struct {
-	repo: Repository
+	repo *Repository
+}
+
+func NewReservationController(repo *Repository) *ReservationControllerImpl {
+	return &ReservationControllerImpl{repo: repo}
 }
 
 func (rsv ReservationControllerImpl) GetReservations(context *gin.Context) {
@@ -29,7 +33,7 @@ func (rsv ReservationControllerImpl) GetReservations(context *gin.Context) {
 	context.JSON(http.StatusOK, reservations)
 }
 
-func AddReservation(context *gin.Context) {
+func (rsv ReservationControllerImpl) AddReservation(context *gin.Context) {
 	var reservation Reservation
 	err := context.ShouldBindJSON(&reservation)
 	if err != nil {
@@ -52,7 +56,7 @@ func AddReservation(context *gin.Context) {
 	userId := context.GetInt64("userId")
 	reservation.UserId = userId
 
-	err = saveReservation(reservation)
+	err = rsv.repo.SaveReservation(reservation)
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not add reservation!", err)
 		return
@@ -67,14 +71,14 @@ func AddReservation(context *gin.Context) {
 	utils.HandleStatusCreated(context, "Reservation added!")
 }
 
-func CompleteReservation(context *gin.Context) {
+func (rsv *ReservationControllerImpl) CompleteReservation(context *gin.Context) {
 	reservationId, err := strconv.ParseInt(context.Param("id"), 10, 64)
 	if err != nil {
 		utils.HandleBadRequest(context, "Could not parse reservationId!", err)
 		return
 	}
 
-	reservation, err := getReservationById(reservationId)
+	reservation, err := rsv.repo.GetReservationById(reservationId)
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not fetch reservation!", err)
 		return
@@ -91,7 +95,7 @@ func CompleteReservation(context *gin.Context) {
 		return
 	}
 
-	err = updateReturnDate(reservationId)
+	err = rsv.repo.UpdateReturnDate(reservationId)
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not copmlete reservation!", err)
 		return

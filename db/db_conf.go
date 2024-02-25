@@ -30,11 +30,9 @@ func InitDB() {
 		log.Fatal(pingErr)
 	}
 	log.Println("Connected!")
-
-	createTables()
 }
 
-func createTables() {
+func CreateTables() {
 	createBooksTable := `
 	CREATE TABLE IF NOT EXISTS books (
 		id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
