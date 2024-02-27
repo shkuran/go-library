@@ -2,42 +2,45 @@ package db
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 
-	"github.com/go-sql-driver/mysql"
+	_ "github.com/lib/pq"
 )
 
 var DB *sql.DB
 
-func InitDB() {
-	cfg := mysql.Config{
-		User:      "root",
-		Passwd:    "root",
-		Net:       "tcp",
-		Addr:      "127.0.0.1:3306",
-		DBName:    "library",
-		ParseTime: true,
-	}
+func InitPostgresDB() (*sql.DB, error) {
 
-	var err error
-	DB, err = sql.Open("mysql", cfg.FormatDSN())
+	host := "localhost"
+	port := 5432
+	user := "root"
+	password := "root"
+	dbname := "library"
+
+	connStr := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
+
+	db, err := sql.Open("postgres", connStr)
+	if err != nil {
+		log.Fatal(err)
+	}
+	DB = db
+	//defer db.Close()
+
+	err = db.Ping()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	pingErr := DB.Ping()
-	if pingErr != nil {
-		log.Fatal(pingErr)
-	}
-	log.Println("Connected!")
+	log.Println("Connected to the PostgreSQL database!")
 
-	createTables()
+	return db, nil
 }
 
-func createTables() {
+func CreateTables(db *sql.DB) {
 	createBooksTable := `
 	CREATE TABLE IF NOT EXISTS books (
-		id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+		id SERIAL PRIMARY KEY NOT NULL,
 		title VARCHAR(255) NOT NULL,
 		author VARCHAR(100) NOT NULL,
 		isbn VARCHAR(20),
@@ -45,21 +48,22 @@ func createTables() {
     	available_copies INT
 	);
 	`
-	_, err := DB.Exec(createBooksTable)
+	_, err := db.Exec(createBooksTable)
 	if err != nil {
+		log.Println(err)
 		panic("Cannot create books table!")
 	}
 	log.Println("Table books was successfuly created!")
 
 	createUsersTable := `
 	CREATE TABLE IF NOT EXISTS users (
-		id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+		id SERIAL PRIMARY KEY NOT NULL,
 		name VARCHAR(255) NOT NULL,
 		email VARCHAR(100) NOT NULL UNIQUE,
 		password VARCHAR(100) NOT NULL UNIQUE
 	);
 	`
-	_, err = DB.Exec(createUsersTable)
+	_, err = db.Exec(createUsersTable)
 	if err != nil {
 		panic("Cannot create users table!")
 	}
@@ -67,16 +71,16 @@ func createTables() {
 
 	createReservationsTable := `
 	CREATE TABLE IF NOT EXISTS reservations (
-		id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+		id SERIAL PRIMARY KEY NOT NULL,
 		book_id INT NOT NULL,
 		user_id INT NOT NULL,
-		checkout_date DATETIME NOT NULL,
-		return_date DATETIME,
+		checkout_date TIMESTAMP NOT NULL,
+		return_date TIMESTAMP,
 		FOREIGN KEY (book_id) REFERENCES books(id),
     	FOREIGN KEY (user_id) REFERENCES users(id)
 	);
 	`
-	_, err = DB.Exec(createReservationsTable)
+	_, err = db.Exec(createReservationsTable)
 	if err != nil {
 		panic("Cannot create reservations table!")
 	}

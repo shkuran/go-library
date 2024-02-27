@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+
 	"github.com/gin-gonic/gin"
 	"github.com/shkuran/go-library/db"
 	"github.com/shkuran/go-library/routes"
@@ -8,7 +10,15 @@ import (
 
 func main() {
 
-	db.InitDB()
+	// varDb, err := db.InitMySQLDB()
+	varDb, err := db.InitPostgresDB()
+
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+
+	db.CreateTables(varDb)
 
 	server := gin.Default()
 

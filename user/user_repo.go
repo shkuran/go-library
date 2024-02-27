@@ -22,8 +22,10 @@ func GetUserById(id int64) (User, error) {
 func saveUser(user User) error {
 	query := `
 	INSERT INTO users (name, email, password) 
-	VALUES (?, ?, ?)
+	VALUES ($1, $2, $3)
 	`
+	// VALUES (?, ?, ?)
+
 
 	hashedPass, err := utils.HashPassword(user.Password)
 	if err != nil {
