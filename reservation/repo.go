@@ -3,8 +3,6 @@ package reservation
 import (
 	"database/sql"
 	"time"
-
-	"github.com/shkuran/go-library/db"
 )
 
 type Repository interface {
@@ -24,7 +22,7 @@ func NewRepo(db *sql.DB) *Repo {
 
 func (r *Repo) getAll() ([]Reservation, error) {
 	query := "SELECT * FROM reservations"
-	rows, err := db.DB.Query(query)
+	rows, err := r.db.Query(query)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +47,7 @@ func (r *Repo) getById(id int64) (Reservation, error) {
 	SELECT * FROM reservations 
 	WHERE id = $1
 	`
-	row := db.DB.QueryRow(query, id)
+	row := r.db.QueryRow(query, id)
 	err := row.Scan(&res.ID, &res.BookId, &res.UserId, &res.CheckoutDate, &res.ReturnDate)
 	if err != nil {
 		return res, err
@@ -65,7 +63,7 @@ func (r *Repo) save(res Reservation) error {
 	`
 	reservationDate := time.Now()
 
-	_, err := db.DB.Exec(query, res.BookId, res.UserId, reservationDate)
+	_, err := r.db.Exec(query, res.BookId, res.UserId, reservationDate)
 	if err != nil {
 		return err
 	}
@@ -81,7 +79,7 @@ func (r *Repo) updateReturnDate(id int64) error {
 	`
 	returnDate := time.Now()
 
-	_, err := db.DB.Exec(query, returnDate, id)
+	_, err := r.db.Exec(query, returnDate, id)
 
 	return err
 }

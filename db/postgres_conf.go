@@ -7,15 +7,12 @@ import (
 	_ "github.com/lib/pq"
 )
 
-var DB *sql.DB
-
 func InitDB(driverName, connStr string) (*sql.DB, error) {
 
 	db, err := sql.Open(driverName, connStr)
 	if err != nil {
 		log.Fatal(err)
 	}
-	DB = db
 
 	err = db.Ping()
 	if err != nil {
