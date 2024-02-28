@@ -9,8 +9,11 @@ import (
 
 func GetUserById(id int64) (User, error) {
 	var user User
-
-	row := db.DB.QueryRow("SELECT * FROM users WHERE id = ?", id)
+	query := `
+	SELECT * FROM users 
+	WHERE id = $1
+	`
+	row := db.DB.QueryRow(query, id)
 	err := row.Scan(&user.ID, &user.Name, &user.Email, &user.Password)
 	if err != nil {
 		return user, err
@@ -24,8 +27,6 @@ func saveUser(user User) error {
 	INSERT INTO users (name, email, password) 
 	VALUES ($1, $2, $3)
 	`
-	// VALUES (?, ?, ?)
-
 
 	hashedPass, err := utils.HashPassword(user.Password)
 	if err != nil {
@@ -41,7 +42,8 @@ func saveUser(user User) error {
 }
 
 func getUsers() ([]User, error) {
-	rows, err := db.DB.Query("SELECT * FROM users")
+	query := "SELECT * FROM users"
+	rows, err := db.DB.Query(query)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +63,11 @@ func getUsers() ([]User, error) {
 }
 
 func validateCredentials(u *User) error {
-	query := "SELECT id, password FROM users WHERE email = ?"
+	query := `
+	SELECT id, password 
+	FROM users 
+	WHERE email = $1
+	`
 	row := db.DB.QueryRow(query, u.Email)
 
 	var passFromDB string

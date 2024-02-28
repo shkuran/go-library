@@ -43,7 +43,7 @@ func CreateTables(db *sql.DB) {
 		id SERIAL PRIMARY KEY NOT NULL,
 		title VARCHAR(255) NOT NULL,
 		author VARCHAR(100) NOT NULL,
-		isbn VARCHAR(20),
+		isbn VARCHAR(20) UNIQUE,
 		publication_year INT,
     	available_copies INT
 	);

@@ -7,7 +7,8 @@ import (
 )
 
 func getReservations() ([]Reservation, error) {
-	rows, err := db.DB.Query("SELECT * FROM reservations")
+	query := "SELECT * FROM reservations"
+	rows, err := db.DB.Query(query)
 	if err != nil {
 		return nil, err
 	}
@@ -28,8 +29,11 @@ func getReservations() ([]Reservation, error) {
 
 func getReservationById(id int64) (Reservation, error) {
 	var res Reservation
-
-	row := db.DB.QueryRow("SELECT * FROM reservations WHERE id = ?", id)
+	query := `
+	SELECT * FROM reservations 
+	WHERE id = $1
+	`
+	row := db.DB.QueryRow(query, id)
 	err := row.Scan(&res.ID, &res.BookId, &res.UserId, &res.CheckoutDate, &res.ReturnDate)
 	if err != nil {
 		return res, err
@@ -41,7 +45,7 @@ func getReservationById(id int64) (Reservation, error) {
 func saveReservation(res Reservation) error {
 	query := `
 	INSERT INTO reservations (book_id, user_id, checkout_date) 
-	VALUES (?, ?, ?)
+	VALUES ($1, $2, $3)
 	`
 	reservationDate := time.Now()
 
@@ -56,8 +60,8 @@ func saveReservation(res Reservation) error {
 func updateReturnDate(id int64) error {
 	query := `
 	UPDATE reservations
-	SET return_date = ?
-	WHERE id = ?
+	SET return_date = $1
+	WHERE id = $2
 	`
 	returnDate := time.Now()
 

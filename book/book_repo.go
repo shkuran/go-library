@@ -4,8 +4,11 @@ import "github.com/shkuran/go-library/db"
 
 func getBookById(id int64) (Book, error) {
 	var book Book
-
-	row := db.DB.QueryRow("SELECT * FROM books WHERE id = ?", id)
+	query := `
+	SELECT * FROM books 
+	WHERE id = $1
+	`
+	row := db.DB.QueryRow(query, id)
 	err := row.Scan(&book.ID, &book.Title, &book.Author, &book.ISBN, &book.PublicationYear, &book.AvailableCopies)
 	if err != nil {
 		return book, err
@@ -17,8 +20,8 @@ func getBookById(id int64) (Book, error) {
 func updateAvailableCopies(id, copies int64) error {
 	query := `
 	UPDATE books
-	SET available_copies = ?
-	WHERE id = ?
+	SET available_copies = $1
+	WHERE id = $2
 	`
 
 	_, err := db.DB.Exec(query, copies, id)
@@ -29,7 +32,7 @@ func updateAvailableCopies(id, copies int64) error {
 func saveBook(book Book) error {
 	query := `
 	INSERT INTO books (title, author, isbn, publication_year, available_copies) 
-	VALUES (?, ?, ?, ?, ?)
+	VALUES ($1, $2, $3, $4, $5)
 	`
 
 	_, err := db.DB.Exec(query, book.Title, book.Author, book.ISBN, book.PublicationYear, book.AvailableCopies)
@@ -41,7 +44,8 @@ func saveBook(book Book) error {
 }
 
 func getBooks() ([]Book, error) {
-	rows, err := db.DB.Query("SELECT * FROM books")
+	query := "SELECT * FROM books"
+	rows, err := db.DB.Query(query)
 	if err != nil {
 		return nil, err
 	}
