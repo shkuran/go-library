@@ -1,14 +1,31 @@
 package book
 
-import "github.com/shkuran/go-library/db"
+import (
+	"database/sql"
+)
 
-func getBookById(id int64) (Book, error) {
+type Repository interface {
+	GetById(id int64) (Book, error)
+	UpdateAvailableCopies(id, copies int64) error
+	save(book Book) error
+	getAll() ([]Book, error)
+}
+
+type Repo struct {
+	db *sql.DB
+}
+
+func NewRepo(db *sql.DB) *Repo {
+	return &Repo{db: db}
+}
+
+func (r *Repo) GetById(id int64) (Book, error) {
 	var book Book
 	query := `
 	SELECT * FROM books 
 	WHERE id = $1
 	`
-	row := db.DB.QueryRow(query, id)
+	row := r.db.QueryRow(query, id)
 	err := row.Scan(&book.ID, &book.Title, &book.Author, &book.ISBN, &book.PublicationYear, &book.AvailableCopies)
 	if err != nil {
 		return book, err
@@ -17,25 +34,25 @@ func getBookById(id int64) (Book, error) {
 	return book, nil
 }
 
-func updateAvailableCopies(id, copies int64) error {
+func (r *Repo) UpdateAvailableCopies(id, copies int64) error {
 	query := `
 	UPDATE books
 	SET available_copies = $1
 	WHERE id = $2
 	`
 
-	_, err := db.DB.Exec(query, copies, id)
+	_, err := r.db.Exec(query, copies, id)
 
 	return err
 }
 
-func saveBook(book Book) error {
+func (r *Repo) save(book Book) error {
 	query := `
 	INSERT INTO books (title, author, isbn, publication_year, available_copies) 
 	VALUES ($1, $2, $3, $4, $5)
 	`
 
-	_, err := db.DB.Exec(query, book.Title, book.Author, book.ISBN, book.PublicationYear, book.AvailableCopies)
+	_, err := r.db.Exec(query, book.Title, book.Author, book.ISBN, book.PublicationYear, book.AvailableCopies)
 	if err != nil {
 		return err
 	}
@@ -43,9 +60,9 @@ func saveBook(book Book) error {
 	return nil
 }
 
-func getBooks() ([]Book, error) {
+func (r *Repo) getAll() ([]Book, error) {
 	query := "SELECT * FROM books"
-	rows, err := db.DB.Query(query)
+	rows, err := r.db.Query(query)
 	if err != nil {
 		return nil, err
 	}

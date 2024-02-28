@@ -7,14 +7,22 @@ import (
 	"github.com/shkuran/go-library/utils"
 )
 
-func CreateUser(context *gin.Context) {
+type Handler struct {
+	repo Repository
+}
+
+func NewHandler(repo Repository) Handler {
+	return Handler{repo: repo}
+}
+
+func (h Handler) CreateUser(context *gin.Context) {
 	var user User
 	err := context.ShouldBindJSON(&user)
 	if err != nil {
 		utils.HandleBadRequest(context, "Could not parse request data!", err)
 		return
 	}
-	err = saveUser(user)
+	err = h.repo.save(user)
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not create user!", err)
 		return
@@ -22,8 +30,8 @@ func CreateUser(context *gin.Context) {
 	utils.HandleStatusCreated(context, "User created!")
 }
 
-func GetUsers(context *gin.Context) {
-	users, err := getUsers()
+func (h Handler) GetUsers(context *gin.Context) {
+	users, err := h.repo.getAll()
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not fetch users!", err)
 		return
@@ -31,7 +39,7 @@ func GetUsers(context *gin.Context) {
 	context.JSON(http.StatusOK, users)
 }
 
-func Login(context *gin.Context) {
+func (h Handler) Login(context *gin.Context) {
 	var user User
 	err := context.ShouldBindJSON(&user)
 	if err != nil {
@@ -39,7 +47,7 @@ func Login(context *gin.Context) {
 		return
 	}
 
-	err = validateCredentials(&user)
+	err = h.repo.validateCredentials(&user)
 	if err != nil {
 		utils.HandleStatusUnauthorized(context, "Could not authenticate user!", err)
 		return

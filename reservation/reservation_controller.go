@@ -9,8 +9,17 @@ import (
 	"github.com/shkuran/go-library/utils"
 )
 
-func GetReservations(context *gin.Context) {
-	reservations, err := getReservations()
+type Handler struct {
+	repo      Repository
+	book_repo book.Repository
+}
+
+func NewHandler(repo Repository, book_repo book.Repository) Handler {
+	return Handler{repo: repo, book_repo: book_repo}
+}
+
+func (h Handler) GetReservations(context *gin.Context) {
+	reservations, err := h.repo.getAll()
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not fetch reservations!", err)
 		return
@@ -19,7 +28,7 @@ func GetReservations(context *gin.Context) {
 	context.JSON(http.StatusOK, reservations)
 }
 
-func AddReservation(context *gin.Context) {
+func (h Handler) AddReservation(context *gin.Context) {
 	var reservation Reservation
 	err := context.ShouldBindJSON(&reservation)
 	if err != nil {
@@ -27,7 +36,7 @@ func AddReservation(context *gin.Context) {
 		return
 	}
 
-	b, err := book.GetBookById(reservation.BookId)
+	b, err := h.book_repo.GetById(reservation.BookId)
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not fetch book!", err)
 		return
@@ -42,13 +51,13 @@ func AddReservation(context *gin.Context) {
 	userId := context.GetInt64("userId")
 	reservation.UserId = userId
 
-	err = saveReservation(reservation)
+	err = h.repo.save(reservation)
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not add reservation!", err)
 		return
 	}
 
-	err = book.UpdateNumberOfBooks(b.ID, b.AvailableCopies-1)
+	err = h.book_repo.UpdateAvailableCopies(b.ID, b.AvailableCopies-1)
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not update the number of book copies!", err)
 		return
@@ -57,14 +66,14 @@ func AddReservation(context *gin.Context) {
 	utils.HandleStatusCreated(context, "Reservation added!")
 }
 
-func CopleteReservation(context *gin.Context) {
+func (h Handler) CopleteReservation(context *gin.Context) {
 	reservationId, err := strconv.ParseInt(context.Param("id"), 10, 64)
 	if err != nil {
 		utils.HandleBadRequest(context, "Could not parse reservationId!", err)
 		return
 	}
 
-	reservation, err := getReservationById(reservationId)
+	reservation, err := h.repo.getById(reservationId)
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not fetch reservation!", err)
 		return
@@ -81,19 +90,19 @@ func CopleteReservation(context *gin.Context) {
 		return
 	}
 
-	err = updateReturnDate(reservationId)
+	err = h.repo.updateReturnDate(reservationId)
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not copmlete reservation!", err)
 		return
 	}
 
-	b, err := book.GetBookById(reservation.BookId)
+	b, err := h.book_repo.GetById(reservation.BookId)
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not fetch book!", err)
 		return
 	}
 
-	err = book.UpdateNumberOfBooks(b.ID, b.AvailableCopies+1)
+	err = h.book_repo.UpdateAvailableCopies(b.ID, b.AvailableCopies+1)
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not update the number of book copies!", err)
 		return

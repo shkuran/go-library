@@ -1,12 +1,28 @@
 package reservation
 
 import (
+	"database/sql"
 	"time"
 
 	"github.com/shkuran/go-library/db"
 )
 
-func getReservations() ([]Reservation, error) {
+type Repository interface {
+	getAll() ([]Reservation, error)
+	getById(id int64) (Reservation, error)
+	save(res Reservation) error
+	updateReturnDate(id int64) error
+}
+
+type Repo struct {
+	db *sql.DB
+}
+
+func NewRepo(db *sql.DB) *Repo {
+	return &Repo{db: db}
+}
+
+func (r *Repo) getAll() ([]Reservation, error) {
 	query := "SELECT * FROM reservations"
 	rows, err := db.DB.Query(query)
 	if err != nil {
@@ -27,7 +43,7 @@ func getReservations() ([]Reservation, error) {
 	return reservations, nil
 }
 
-func getReservationById(id int64) (Reservation, error) {
+func (r *Repo) getById(id int64) (Reservation, error) {
 	var res Reservation
 	query := `
 	SELECT * FROM reservations 
@@ -42,7 +58,7 @@ func getReservationById(id int64) (Reservation, error) {
 	return res, nil
 }
 
-func saveReservation(res Reservation) error {
+func (r *Repo) save(res Reservation) error {
 	query := `
 	INSERT INTO reservations (book_id, user_id, checkout_date) 
 	VALUES ($1, $2, $3)
@@ -57,7 +73,7 @@ func saveReservation(res Reservation) error {
 	return nil
 }
 
-func updateReturnDate(id int64) error {
+func (r *Repo) updateReturnDate(id int64) error {
 	query := `
 	UPDATE reservations
 	SET return_date = $1

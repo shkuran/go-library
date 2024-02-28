@@ -1,19 +1,34 @@
 package user
 
 import (
+	"database/sql"
 	"errors"
 
-	"github.com/shkuran/go-library/db"
 	"github.com/shkuran/go-library/utils"
 )
 
-func GetUserById(id int64) (User, error) {
+type Repository interface {
+	getById(id int64) (User, error)
+	save(user User) error
+	getAll() ([]User, error)
+	validateCredentials(u *User) error
+}
+
+type Repo struct {
+	db *sql.DB
+}
+
+func NewRepo(db *sql.DB) *Repo {
+	return &Repo{db: db}
+}
+
+func (r *Repo) getById(id int64) (User, error) {
 	var user User
 	query := `
 	SELECT * FROM users 
 	WHERE id = $1
 	`
-	row := db.DB.QueryRow(query, id)
+	row := r.db.QueryRow(query, id)
 	err := row.Scan(&user.ID, &user.Name, &user.Email, &user.Password)
 	if err != nil {
 		return user, err
@@ -22,7 +37,7 @@ func GetUserById(id int64) (User, error) {
 	return user, nil
 }
 
-func saveUser(user User) error {
+func (r *Repo) save(user User) error {
 	query := `
 	INSERT INTO users (name, email, password) 
 	VALUES ($1, $2, $3)
@@ -33,7 +48,7 @@ func saveUser(user User) error {
 		return err
 	}
 
-	_, err = db.DB.Exec(query, user.Name, user.Email, hashedPass)
+	_, err = r.db.Exec(query, user.Name, user.Email, hashedPass)
 	if err != nil {
 		return err
 	}
@@ -41,9 +56,9 @@ func saveUser(user User) error {
 	return nil
 }
 
-func getUsers() ([]User, error) {
+func (r *Repo) getAll() ([]User, error) {
 	query := "SELECT * FROM users"
-	rows, err := db.DB.Query(query)
+	rows, err := r.db.Query(query)
 	if err != nil {
 		return nil, err
 	}
@@ -62,13 +77,13 @@ func getUsers() ([]User, error) {
 	return users, nil
 }
 
-func validateCredentials(u *User) error {
+func (r *Repo) validateCredentials(u *User) error {
 	query := `
 	SELECT id, password 
 	FROM users 
 	WHERE email = $1
 	`
-	row := db.DB.QueryRow(query, u.Email)
+	row := r.db.QueryRow(query, u.Email)
 
 	var passFromDB string
 	err := row.Scan(&u.ID, &passFromDB)
