@@ -36,7 +36,11 @@ func main() {
 
 	routes.RegisterRoutes(server, book_handler, user_handler, reservation_handler)
 
-	server.Run(":8080")
+	err = server.Run(":8080")
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
 }
 
 // host := "localhost"
