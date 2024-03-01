@@ -6,10 +6,10 @@ import (
 )
 
 type Repository interface {
-	getAll() ([]Reservation, error)
-	getById(id int64) (Reservation, error)
-	save(res Reservation) error
-	updateReturnDate(id int64) error
+	GetAll() ([]Reservation, error)
+	GetById(id int64) (Reservation, error)
+	Save(res Reservation) error
+	UpdateReturnDate(id int64) error
 }
 
 type Repo struct {
@@ -20,7 +20,7 @@ func NewRepo(db *sql.DB) *Repo {
 	return &Repo{db: db}
 }
 
-func (r *Repo) getAll() ([]Reservation, error) {
+func (r *Repo) GetAll() ([]Reservation, error) {
 	query := "SELECT * FROM reservations"
 	rows, err := r.db.Query(query)
 	if err != nil {
@@ -41,7 +41,7 @@ func (r *Repo) getAll() ([]Reservation, error) {
 	return reservations, nil
 }
 
-func (r *Repo) getById(id int64) (Reservation, error) {
+func (r *Repo) GetById(id int64) (Reservation, error) {
 	var res Reservation
 	query := `
 	SELECT * FROM reservations 
@@ -56,7 +56,7 @@ func (r *Repo) getById(id int64) (Reservation, error) {
 	return res, nil
 }
 
-func (r *Repo) save(res Reservation) error {
+func (r *Repo) Save(res Reservation) error {
 	query := `
 	INSERT INTO reservations (book_id, user_id, checkout_date) 
 	VALUES ($1, $2, $3)
@@ -71,7 +71,7 @@ func (r *Repo) save(res Reservation) error {
 	return nil
 }
 
-func (r *Repo) updateReturnDate(id int64) error {
+func (r *Repo) UpdateReturnDate(id int64) error {
 	query := `
 	UPDATE reservations
 	SET return_date = $1

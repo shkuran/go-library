@@ -7,8 +7,8 @@ import (
 type Repository interface {
 	GetById(id int64) (Book, error)
 	UpdateAvailableCopies(id, copies int64) error
-	save(book Book) error
-	getAll() ([]Book, error)
+	Save(book Book) error
+	GetAll() ([]Book, error)
 }
 
 type Repo struct {
@@ -46,7 +46,7 @@ func (r *Repo) UpdateAvailableCopies(id, copies int64) error {
 	return err
 }
 
-func (r *Repo) save(book Book) error {
+func (r *Repo) Save(book Book) error {
 	query := `
 	INSERT INTO books (title, author, isbn, publication_year, available_copies) 
 	VALUES ($1, $2, $3, $4, $5)
@@ -60,7 +60,7 @@ func (r *Repo) save(book Book) error {
 	return nil
 }
 
-func (r *Repo) getAll() ([]Book, error) {
+func (r *Repo) GetAll() ([]Book, error) {
 	query := "SELECT * FROM books"
 	rows, err := r.db.Query(query)
 	if err != nil {

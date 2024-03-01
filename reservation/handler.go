@@ -19,7 +19,7 @@ func NewHandler(repo Repository, book_repo book.Repository) Handler {
 }
 
 func (h Handler) GetReservations(context *gin.Context) {
-	reservations, err := h.repo.getAll()
+	reservations, err := h.repo.GetAll()
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not fetch reservations!", err)
 		return
@@ -51,7 +51,7 @@ func (h Handler) AddReservation(context *gin.Context) {
 	userId := context.GetInt64("userId")
 	reservation.UserId = userId
 
-	err = h.repo.save(reservation)
+	err = h.repo.Save(reservation)
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not add reservation!", err)
 		return
@@ -73,7 +73,7 @@ func (h Handler) CopleteReservation(context *gin.Context) {
 		return
 	}
 
-	reservation, err := h.repo.getById(reservationId)
+	reservation, err := h.repo.GetById(reservationId)
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not fetch reservation!", err)
 		return
@@ -90,7 +90,7 @@ func (h Handler) CopleteReservation(context *gin.Context) {
 		return
 	}
 
-	err = h.repo.updateReturnDate(reservationId)
+	err = h.repo.UpdateReturnDate(reservationId)
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not copmlete reservation!", err)
 		return

@@ -16,7 +16,7 @@ func NewHandler(repo Repository) Handler {
 }
 
 func (h Handler) GetBooks(context *gin.Context) {
-	books, err := h.repo.getAll()
+	books, err := h.repo.GetAll()
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not fetch books!", err)
 		return
