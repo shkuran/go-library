@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	connStr := "host=localhost port=5432 user=root password=root dbname=library sslmode=disable"
+	connStr := "host=host.docker.internal port=5432 user=root password=root dbname=library sslmode=disable"
 	driverName := "postgres"
 
 	varDb, err := db.InitDB(driverName, connStr)
@@ -42,11 +42,3 @@ func main() {
 		return
 	}
 }
-
-// host := "localhost"
-// port := 5432
-// user := "root"
-// password := "root"
-// dbname := "library"
-
-// connStr := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
