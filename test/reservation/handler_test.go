@@ -2,7 +2,6 @@ package test
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -175,10 +174,6 @@ func TestAddReservation(t *testing.T) {
 			context, _ := gin.CreateTestContext(w)
 			context.Request = req
 			context.Set("userId", int64(1))
-			context.Next()
-
-			userId := context.GetInt64("userId")
-			fmt.Println(userId)
 
 			// Perform the request
 			env.ReservationHandler.AddReservation(context)
@@ -293,21 +288,18 @@ func TestCompleteReservation(t *testing.T) {
 				// Check if AvailableCopies of book with id:1 was updated(was: 1, should be: 2)
 				reservedBook, err := env.BookRepo.GetById(1)
 				if err != nil {
-					t.Errorf("Could not fetch book! error: %d", err)
+					t.Errorf("Could not fetch book! error: %v", err)
 				}
 				if reservedBook.AvailableCopies != 2 {
 					t.Errorf("Expected AvailableCopies %d; got %d", 2, reservedBook.AvailableCopies)
 				}
-				// Check if reservation was added
-				expRes := reservation.Reservation{ID: 1, BookId: 1, UserId: 1}
+				// Check if reservation was completed
 				gotedRes, err := env.ReservationRepo.GetById(1)
 				if err != nil {
-					t.Errorf("Could not fetch reservation! error: %d", err)
+					t.Errorf("Could not fetch reservation! error: %v", err)
 				}
-				if !reflect.DeepEqual(gotedRes, expRes) {
-					t.Errorf("Expected new rservation: %v; got: %v", expRes, gotedRes)
-					// t.Errorf("Expected new rservation id:%d, book_id:%d, user_id:%d; got id:%d, book_id:%d, user_id:%d",
-					// 	expRes.ID, expRes.BookId, expRes.UserId, gotedRes.ID, gotedRes.BookId, gotedRes.UserId)
+				if gotedRes.ReturnDate == nil {
+					t.Errorf("Rservation ReturnDate was not updated: %+v;", gotedRes)
 				}
 			} else {
 				// Check if the response contains the expected error message
