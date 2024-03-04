@@ -38,6 +38,11 @@ func (r *MockReservationRepo) Save(res reservation.Reservation) error {
 
 func (r *MockReservationRepo) UpdateReturnDate(id int64) error {
 	returnDate := time.Now()
-	r.reservation[id].ReturnDate = &returnDate
-	return nil
+	for i := range r.reservation {
+		if r.reservation[i].ID == id {
+			r.reservation[i].ReturnDate = &returnDate
+			return nil
+		}
+	}
+	return errors.New("simulated error updating ReturnDate")
 }
