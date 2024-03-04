@@ -31,11 +31,17 @@ func (r *MockBookRepo) GetById(id int64) (book.Book, error) {
 }
 
 func (r *MockBookRepo) UpdateAvailableCopies(id, copies int64) error {
-	r.books[id].AvailableCopies = copies
-	return nil
+	for i := range r.books {
+		if r.books[i].ID == id {
+			r.books[i].AvailableCopies = copies
+			return nil
+		}
+	}
+	return errors.New("simulated error updating AvailableCopies")
 }
 
 func (r *MockBookRepo) Save(book book.Book) error {
+	book.ID = int64(len(r.books)) + 1
 	r.books = append(r.books, book)
 	return nil
 }

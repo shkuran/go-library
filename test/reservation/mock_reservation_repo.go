@@ -32,6 +32,7 @@ func (r *MockReservationRepo) GetById(id int64) (reservation.Reservation, error)
 }
 
 func (r *MockReservationRepo) Save(res reservation.Reservation) error {
+	res.ID = int64(len(r.reservation)) + 1
 	r.reservation = append(r.reservation, res)
 	return nil
 }
