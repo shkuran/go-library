@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/shkuran/go-library/book"
@@ -223,7 +224,7 @@ func TestCompleteReservation(t *testing.T) {
 		testName         string
 		booksInDB        []book.Book
 		reservationsInDB []reservation.Reservation
-		reservationId    int
+		reservationId    string
 		expectedCode     int
 		expectedErrorMsg string
 	}{
@@ -232,33 +233,46 @@ func TestCompleteReservation(t *testing.T) {
 			testName:         "Successfull completed reservation",
 			booksInDB:        []book.Book{{ID: 1, Title: "Book_1", AvailableCopies: 1}},
 			reservationsInDB: []reservation.Reservation{{ID: 1, BookId: 1, UserId: 1, ReturnDate: nil}},
+			reservationId:    "1",
 			expectedCode:     http.StatusOK,
 			expectedErrorMsg: "",
 		},
 		// Case 2: CopleteReservation returns a bad request
-		// {
-		// 	testName:         "Bad request",
-		// 	booksInDB:        []book.Book{},
-		// 	reservationsInDB: []reservation.Reservation{},
-		// 	expectedCode:     http.StatusBadRequest,
-		// 	expectedErrorMsg: "Could not parse request data!",
-		// },
-		// // Case 3: CopleteReservation could not fetch book! Returns InternalServerError
-		// {
-		// 	testName:         "No books",
-		// 	booksInDB:        []book.Book{},
-		// 	reservationsInDB: []reservation.Reservation{},
-		// 	expectedCode:     http.StatusInternalServerError,
-		// 	expectedErrorMsg: "Could not fetch book!",
-		// },
-		// // Case 4: CopleteReservation returns a bad request. The book is not available!
-		// {
-		// 	testName:         "AvailableCopies is 0",
-		// 	booksInDB:        []book.Book{{ID: 1, Title: "Book_1", AvailableCopies: 0}},
-		// 	reservationsInDB: []reservation.Reservation{},
-		// 	expectedCode:     http.StatusBadRequest,
-		// 	expectedErrorMsg: "The book is not available!",
-		// },
+		{
+			testName:         "Bad request",
+			booksInDB:        []book.Book{},
+			reservationsInDB: []reservation.Reservation{},
+			reservationId:    "a",
+			expectedCode:     http.StatusBadRequest,
+			expectedErrorMsg: "Could not parse reservationId!",
+		},
+		// Case 3: CopleteReservation could not fetch reservation! Returns InternalServerError
+		{
+			testName:         "No resrvation with this id",
+			booksInDB:        []book.Book{{ID: 1, Title: "Book_1", AvailableCopies: 1}},
+			reservationsInDB: []reservation.Reservation{{ID: 1, BookId: 1, UserId: 1, ReturnDate: nil}},
+			reservationId:    "2",
+			expectedCode:     http.StatusInternalServerError,
+			expectedErrorMsg: "Could not fetch reservation!",
+		},
+		// Case 4: CopleteReservation returns a StatusUnauthorized. User1 cannot complete reservation of user2
+		{
+			testName:         "No access to reservation",
+			booksInDB:        []book.Book{{ID: 1, Title: "Book_1", AvailableCopies: 1}},
+			reservationsInDB: []reservation.Reservation{{ID: 1, BookId: 1, UserId: 2, ReturnDate: nil}},
+			reservationId:    "1",
+			expectedCode:     http.StatusUnauthorized,
+			expectedErrorMsg: "Not access to copmlete reservation!",
+		},
+		// Case 5: Cannot complete reservation if returnDate is not nil
+		{
+			testName:         "Rreservation is completed already",
+			booksInDB:        []book.Book{{ID: 1, Title: "Book_1", AvailableCopies: 1}},
+			reservationsInDB: []reservation.Reservation{{ID: 1, BookId: 1, UserId: 1, ReturnDate: &time.Time{}}},
+			reservationId:    "1",
+			expectedCode:     http.StatusBadRequest,
+			expectedErrorMsg: "The reservation is copleted already!",
+		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.testName, func(t *testing.T) {
@@ -275,7 +289,7 @@ func TestCompleteReservation(t *testing.T) {
 			context, _ := gin.CreateTestContext(w)
 			context.Request = req
 			context.Set("userId", int64(1))
-			context.AddParam("id", "1")
+			context.AddParam("id", tc.reservationId)
 
 			// Perform the request
 			env.ReservationHandler.CopleteReservation(context)
