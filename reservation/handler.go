@@ -86,7 +86,7 @@ func (h Handler) CopleteReservation(context *gin.Context) {
 	}
 
 	if reservation.ReturnDate != nil {
-		utils.HandleBadRequest(context, "The reservation is copleted already!!", nil)
+		utils.HandleBadRequest(context, "The reservation is copleted already!", nil)
 		return
 	}
 
