@@ -45,7 +45,7 @@ func TestGetReservations(t *testing.T) {
 	}{
 		// Case 1: GetReservation returns []Reservation
 		{
-			testName:             "Success",
+			testName:             "Return reservations",
 			booksInDB:            []book.Book{},
 			reservationsInDB:     []reservation.Reservation{{ID: 1, BookId: 1, UserId: 1}, {ID: 2, BookId: 2, UserId: 2}},
 			expectedCode:         http.StatusOK,
@@ -54,7 +54,7 @@ func TestGetReservations(t *testing.T) {
 		},
 		// Case 2: GetReservation returns an error
 		{
-			testName:             "Error",
+			testName:             "Return an error",
 			booksInDB:            []book.Book{},
 			reservationsInDB:     []reservation.Reservation{},
 			expectedCode:         http.StatusInternalServerError,
@@ -125,7 +125,7 @@ func TestAddReservation(t *testing.T) {
 	}{
 		// Case 1: AddReservation adds new reservation and update AvailableCopies
 		{
-			testName:         "Successfull added reservation",
+			testName:         "Successfully added reservation",
 			booksInDB:        []book.Book{{ID: 1, Title: "Book_1", AvailableCopies: 1}},
 			reservationsInDB: []reservation.Reservation{},
 			requestBody:      `{"book_id": 1}`,
@@ -230,7 +230,7 @@ func TestCompleteReservation(t *testing.T) {
 	}{
 		// Case 1: CopleteReservation add return date for reservation and update AvailableCopies for book
 		{
-			testName:         "Successfull completed reservation",
+			testName:         "Successfully completed reservation",
 			booksInDB:        []book.Book{{ID: 1, Title: "Book_1", AvailableCopies: 1}},
 			reservationsInDB: []reservation.Reservation{{ID: 1, BookId: 1, UserId: 1, ReturnDate: nil}},
 			reservationId:    "1",
@@ -292,7 +292,7 @@ func TestCompleteReservation(t *testing.T) {
 			context.AddParam("id", tc.reservationId)
 
 			// Perform the request
-			env.ReservationHandler.CopleteReservation(context)
+			env.ReservationHandler.CompleteReservation(context)
 
 			if w.Code != tc.expectedCode {
 				t.Errorf("Expected status %d; got %d", tc.expectedCode, w.Code)
@@ -308,12 +308,12 @@ func TestCompleteReservation(t *testing.T) {
 					t.Errorf("Expected AvailableCopies %d; got %d", 2, reservedBook.AvailableCopies)
 				}
 				// Check if reservation was completed
-				gotedRes, err := env.ReservationRepo.GetById(1)
+				gotRes, err := env.ReservationRepo.GetById(1)
 				if err != nil {
 					t.Errorf("Could not fetch reservation! error: %v", err)
 				}
-				if gotedRes.ReturnDate == nil {
-					t.Errorf("Rservation ReturnDate was not updated: %+v;", gotedRes)
+				if gotRes.ReturnDate == nil {
+					t.Errorf("Rservation ReturnDate was not updated: %+v;", gotRes)
 				}
 			} else {
 				// Check if the response contains the expected error message
