@@ -11,7 +11,7 @@ import (
 func RegisterRoutes(server *gin.Engine, book book.Handler, user user.Handler, reservation reservation.Handler) {
 	server.GET("/reservations", reservation.GetReservations)
 	server.POST("/reservations", auth.Authenticate, reservation.AddReservation)
-	server.POST("/reservations/:id", auth.Authenticate, reservation.CopleteReservation)
+	server.POST("/reservations/:id", auth.Authenticate, reservation.CompleteReservation)
 
 	server.GET("/books", book.GetBooks)
 	// server.POST("/books", book.AddBook)

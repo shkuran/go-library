@@ -66,7 +66,7 @@ func (h Handler) AddReservation(context *gin.Context) {
 	utils.HandleStatusCreated(context, "Reservation added!")
 }
 
-func (h Handler) CopleteReservation(context *gin.Context) {
+func (h Handler) CompleteReservation(context *gin.Context) {
 	reservationId, err := strconv.ParseInt(context.Param("id"), 10, 64)
 	if err != nil {
 		utils.HandleBadRequest(context, "Could not parse reservationId!", err)
