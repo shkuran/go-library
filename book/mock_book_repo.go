@@ -1,33 +1,32 @@
-package test
+package book
 
 import (
 	"errors"
 
-	"github.com/shkuran/go-library/book"
 )
 
 type MockBookRepo struct {
-	books []book.Book
+	books []Book
 }
 
-func NewMockBookRepo(books []book.Book) *MockBookRepo {
+func NewMockBookRepo(books []Book) *MockBookRepo {
 	return &MockBookRepo{books: books}
 }
 
-func (r *MockBookRepo) GetAll() ([]book.Book, error) {
+func (r *MockBookRepo) GetAll() ([]Book, error) {
 	if len(r.books) == 0 {
 		return nil, errors.New("simulated error fetching books")
 	}
 	return r.books, nil
 }
 
-func (r *MockBookRepo) GetById(id int64) (book.Book, error) {
+func (r *MockBookRepo) GetById(id int64) (Book, error) {
 	for _, bk := range r.books {
 		if bk.ID == id {
 			return bk, nil
 		}
 	}
-	return book.Book{}, errors.New("simulated error fetching book by id")
+	return Book{}, errors.New("simulated error fetching book by id")
 }
 
 func (r *MockBookRepo) UpdateAvailableCopies(id, copies int64) error {
@@ -40,7 +39,7 @@ func (r *MockBookRepo) UpdateAvailableCopies(id, copies int64) error {
 	return errors.New("simulated error updating AvailableCopies")
 }
 
-func (r *MockBookRepo) Save(book book.Book) error {
+func (r *MockBookRepo) Save(book Book) error {
 	book.ID = int64(len(r.books)) + 1
 	r.books = append(r.books, book)
 	return nil

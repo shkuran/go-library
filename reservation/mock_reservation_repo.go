@@ -1,37 +1,36 @@
-package test
+package reservation
 
 import (
 	"errors"
 	"time"
 
-	"github.com/shkuran/go-library/reservation"
 )
 
 type MockReservationRepo struct {
-	reservation []reservation.Reservation
+	reservation []Reservation
 }
 
-func NewMockReservationRepo(res []reservation.Reservation) *MockReservationRepo {
+func NewMockReservationRepo(res []Reservation) *MockReservationRepo {
 	return &MockReservationRepo{reservation: res}
 }
 
-func (r *MockReservationRepo) GetAll() ([]reservation.Reservation, error) {
+func (r *MockReservationRepo) GetAll() ([]Reservation, error) {
 	if len(r.reservation) == 0 {
 		return nil, errors.New("simulated error fetching reservations")
 	}
 	return r.reservation, nil
 }
 
-func (r *MockReservationRepo) GetById(id int64) (reservation.Reservation, error) {
+func (r *MockReservationRepo) GetById(id int64) (Reservation, error) {
 	for _, res := range r.reservation {
 		if res.ID == id {
 			return res, nil
 		}
 	}
-	return reservation.Reservation{}, errors.New("simulated error fetching reservation by id")
+	return Reservation{}, errors.New("simulated error fetching reservation by id")
 }
 
-func (r *MockReservationRepo) Save(res reservation.Reservation) error {
+func (r *MockReservationRepo) Save(res Reservation) error {
 	res.ID = int64(len(r.reservation)) + 1
 	r.reservation = append(r.reservation, res)
 	return nil

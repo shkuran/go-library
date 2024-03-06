@@ -1,4 +1,4 @@
-package test
+package reservation
 
 import (
 	"encoding/json"
@@ -11,14 +11,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/shkuran/go-library/book"
-	"github.com/shkuran/go-library/reservation"
-	test "github.com/shkuran/go-library/test/book"
 )
 
-func setupTestEnv(booksInDB []book.Book, reservationsInDB []reservation.Reservation) TestEnv {
-	bookRepo := test.NewMockBookRepo(booksInDB)
+func setupTestEnv(booksInDB []book.Book, reservationsInDB []Reservation) TestEnv {
+	bookRepo := book.NewMockBookRepo(booksInDB)
 	resRepo := NewMockReservationRepo(reservationsInDB)
-	resHandler := reservation.NewHandler(resRepo, bookRepo)
+	resHandler := NewHandler(resRepo, bookRepo)
 
 	return TestEnv{
 		BookRepo:           bookRepo,
@@ -28,9 +26,9 @@ func setupTestEnv(booksInDB []book.Book, reservationsInDB []reservation.Reservat
 }
 
 type TestEnv struct {
-	BookRepo           *test.MockBookRepo
+	BookRepo           *book.MockBookRepo
 	ReservationRepo    *MockReservationRepo
-	ReservationHandler reservation.Handler
+	ReservationHandler Handler
 }
 
 func TestGetReservations(t *testing.T) {
@@ -38,25 +36,25 @@ func TestGetReservations(t *testing.T) {
 	testCases := []struct {
 		testName             string
 		booksInDB            []book.Book
-		reservationsInDB     []reservation.Reservation
+		reservationsInDB     []Reservation
 		expectedCode         int
-		expectedReservations []reservation.Reservation
+		expectedReservations []Reservation
 		expectedErrorMsg     string
 	}{
 		// Case 1: GetReservation returns []Reservation
 		{
 			testName:             "Return reservations",
 			booksInDB:            []book.Book{},
-			reservationsInDB:     []reservation.Reservation{{ID: 1, BookId: 1, UserId: 1}, {ID: 2, BookId: 2, UserId: 2}},
+			reservationsInDB:     []Reservation{{ID: 1, BookId: 1, UserId: 1}, {ID: 2, BookId: 2, UserId: 2}},
 			expectedCode:         http.StatusOK,
-			expectedReservations: []reservation.Reservation{{ID: 1, BookId: 1, UserId: 1}, {ID: 2, BookId: 2, UserId: 2}},
+			expectedReservations: []Reservation{{ID: 1, BookId: 1, UserId: 1}, {ID: 2, BookId: 2, UserId: 2}},
 			expectedErrorMsg:     "",
 		},
 		// Case 2: GetReservation returns an error
 		{
 			testName:             "Return an error",
 			booksInDB:            []book.Book{},
-			reservationsInDB:     []reservation.Reservation{},
+			reservationsInDB:     []Reservation{},
 			expectedCode:         http.StatusInternalServerError,
 			expectedReservations: nil,
 			expectedErrorMsg:     "Could not fetch reservations!",
@@ -100,7 +98,7 @@ func TestGetReservations(t *testing.T) {
 				}
 			} else {
 				// Check if the response matches the expected reservations
-				var responseReservations []reservation.Reservation
+				var responseReservations []Reservation
 				err = json.Unmarshal(w.Body.Bytes(), &responseReservations)
 				if err != nil {
 					t.Fatal(err)
@@ -118,7 +116,7 @@ func TestAddReservation(t *testing.T) {
 	testCases := []struct {
 		testName         string
 		booksInDB        []book.Book
-		reservationsInDB []reservation.Reservation
+		reservationsInDB []Reservation
 		requestBody      string
 		expectedCode     int
 		expectedErrorMsg string
@@ -127,7 +125,7 @@ func TestAddReservation(t *testing.T) {
 		{
 			testName:         "Successfully added reservation",
 			booksInDB:        []book.Book{{ID: 1, Title: "Book_1", AvailableCopies: 1}},
-			reservationsInDB: []reservation.Reservation{},
+			reservationsInDB: []Reservation{},
 			requestBody:      `{"book_id": 1}`,
 			expectedCode:     http.StatusCreated,
 			expectedErrorMsg: "",
@@ -136,7 +134,7 @@ func TestAddReservation(t *testing.T) {
 		{
 			testName:         "Bad request",
 			booksInDB:        []book.Book{},
-			reservationsInDB: []reservation.Reservation{},
+			reservationsInDB: []Reservation{},
 			requestBody:      `{"book_id": 1a}`,
 			expectedCode:     http.StatusBadRequest,
 			expectedErrorMsg: "Could not parse request data!",
@@ -145,7 +143,7 @@ func TestAddReservation(t *testing.T) {
 		{
 			testName:         "No books",
 			booksInDB:        []book.Book{},
-			reservationsInDB: []reservation.Reservation{},
+			reservationsInDB: []Reservation{},
 			requestBody:      `{"book_id": 18}`,
 			expectedCode:     http.StatusInternalServerError,
 			expectedErrorMsg: "Could not fetch book!",
@@ -154,7 +152,7 @@ func TestAddReservation(t *testing.T) {
 		{
 			testName:         "AvailableCopies is 0",
 			booksInDB:        []book.Book{{ID: 1, Title: "Book_1", AvailableCopies: 0}},
-			reservationsInDB: []reservation.Reservation{},
+			reservationsInDB: []Reservation{},
 			requestBody:      `{"book_id": 1}`,
 			expectedCode:     http.StatusBadRequest,
 			expectedErrorMsg: "The book is not available!",
@@ -193,7 +191,7 @@ func TestAddReservation(t *testing.T) {
 					t.Errorf("Expected AvailableCopies %d; got %d", 0, reservedBook.AvailableCopies)
 				}
 				// Check if reservation was added
-				expRes := reservation.Reservation{ID: 1, BookId: 1, UserId: 1}
+				expRes := Reservation{ID: 1, BookId: 1, UserId: 1}
 				gotedRes, err := env.ReservationRepo.GetById(1)
 				if err != nil {
 					t.Errorf("Could not fetch book! error: %d", err)
@@ -223,7 +221,7 @@ func TestCompleteReservation(t *testing.T) {
 	testCases := []struct {
 		testName         string
 		booksInDB        []book.Book
-		reservationsInDB []reservation.Reservation
+		reservationsInDB []Reservation
 		reservationId    string
 		expectedCode     int
 		expectedErrorMsg string
@@ -232,7 +230,7 @@ func TestCompleteReservation(t *testing.T) {
 		{
 			testName:         "Successfully completed reservation",
 			booksInDB:        []book.Book{{ID: 1, Title: "Book_1", AvailableCopies: 1}},
-			reservationsInDB: []reservation.Reservation{{ID: 1, BookId: 1, UserId: 1, ReturnDate: nil}},
+			reservationsInDB: []Reservation{{ID: 1, BookId: 1, UserId: 1, ReturnDate: nil}},
 			reservationId:    "1",
 			expectedCode:     http.StatusOK,
 			expectedErrorMsg: "",
@@ -241,7 +239,7 @@ func TestCompleteReservation(t *testing.T) {
 		{
 			testName:         "Bad request",
 			booksInDB:        []book.Book{},
-			reservationsInDB: []reservation.Reservation{},
+			reservationsInDB: []Reservation{},
 			reservationId:    "a",
 			expectedCode:     http.StatusBadRequest,
 			expectedErrorMsg: "Could not parse reservationId!",
@@ -250,7 +248,7 @@ func TestCompleteReservation(t *testing.T) {
 		{
 			testName:         "No resrvation with this id",
 			booksInDB:        []book.Book{{ID: 1, Title: "Book_1", AvailableCopies: 1}},
-			reservationsInDB: []reservation.Reservation{{ID: 1, BookId: 1, UserId: 1, ReturnDate: nil}},
+			reservationsInDB: []Reservation{{ID: 1, BookId: 1, UserId: 1, ReturnDate: nil}},
 			reservationId:    "2",
 			expectedCode:     http.StatusInternalServerError,
 			expectedErrorMsg: "Could not fetch reservation!",
@@ -259,7 +257,7 @@ func TestCompleteReservation(t *testing.T) {
 		{
 			testName:         "No access to reservation",
 			booksInDB:        []book.Book{{ID: 1, Title: "Book_1", AvailableCopies: 1}},
-			reservationsInDB: []reservation.Reservation{{ID: 1, BookId: 1, UserId: 2, ReturnDate: nil}},
+			reservationsInDB: []Reservation{{ID: 1, BookId: 1, UserId: 2, ReturnDate: nil}},
 			reservationId:    "1",
 			expectedCode:     http.StatusUnauthorized,
 			expectedErrorMsg: "Not access to copmlete reservation!",
@@ -268,7 +266,7 @@ func TestCompleteReservation(t *testing.T) {
 		{
 			testName:         "Rreservation is completed already",
 			booksInDB:        []book.Book{{ID: 1, Title: "Book_1", AvailableCopies: 1}},
-			reservationsInDB: []reservation.Reservation{{ID: 1, BookId: 1, UserId: 1, ReturnDate: &time.Time{}}},
+			reservationsInDB: []Reservation{{ID: 1, BookId: 1, UserId: 1, ReturnDate: &time.Time{}}},
 			reservationId:    "1",
 			expectedCode:     http.StatusBadRequest,
 			expectedErrorMsg: "The reservation is copleted already!",

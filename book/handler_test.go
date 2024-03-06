@@ -1,4 +1,4 @@
-package test
+package book
 
 import (
 	"encoding/json"
@@ -8,30 +8,29 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	"github.com/shkuran/go-library/book"
 )
 
 func TestGetBooks(t *testing.T) {
 
 	testCases := []struct {
 		testName         string
-		booksInDB        []book.Book
+		booksInDB        []Book
 		expectedCode     int
-		expectedBooks    []book.Book
+		expectedBooks    []Book
 		expectedErrorMsg string
 	}{
 		// Case 1: GetBooks returns []Book
 		{
 			testName:         "Success",
-			booksInDB:        []book.Book{{ID: 1, Title: "Book 1"}, {ID: 2, Title: "Book 2"}},
+			booksInDB:        []Book{{ID: 1, Title: "Book 1"}, {ID: 2, Title: "Book 2"}},
 			expectedCode:     http.StatusOK,
-			expectedBooks:    []book.Book{{ID: 1, Title: "Book 1"}, {ID: 2, Title: "Book 2"}},
+			expectedBooks:    []Book{{ID: 1, Title: "Book 1"}, {ID: 2, Title: "Book 2"}},
 			expectedErrorMsg: "",
 		},
 		// Case 2: GetBooks returns an error
 		{
 			testName:         "Error",
-			booksInDB:        []book.Book{},
+			booksInDB:        []Book{},
 			expectedCode:     http.StatusInternalServerError,
 			expectedBooks:    nil,
 			expectedErrorMsg: "Could not fetch books!",
@@ -41,12 +40,12 @@ func TestGetBooks(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.testName, func(t *testing.T) {
 
-			book_repo := NewMockBookRepo(tc.booksInDB)
-			book_handler := book.NewHandler(book_repo)
+			bookRepo := NewMockBookRepo(tc.booksInDB)
+			bookHandler := NewHandler(bookRepo)
 
 			router := gin.Default()
 
-			router.GET("/books", book_handler.GetBooks)
+			router.GET("/books", bookHandler.GetBooks)
 
 			// Perform a test request
 			req, err := http.NewRequest("GET", "/books", nil)
@@ -76,7 +75,7 @@ func TestGetBooks(t *testing.T) {
 				}
 			} else {
 				// Check if the response matches the expected books
-				var responseBooks []book.Book
+				var responseBooks []Book
 				err = json.Unmarshal(w.Body.Bytes(), &responseBooks)
 				if err != nil {
 					t.Fatal(err)
