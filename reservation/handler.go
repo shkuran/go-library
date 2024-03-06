@@ -11,11 +11,11 @@ import (
 
 type Handler struct {
 	repo      Repository
-	book_repo book.Repository
+	bookRepo book.Repository
 }
 
-func NewHandler(repo Repository, book_repo book.Repository) Handler {
-	return Handler{repo: repo, book_repo: book_repo}
+func NewHandler(repo Repository, bookRepo book.Repository) Handler {
+	return Handler{repo: repo, bookRepo: bookRepo}
 }
 
 func (h Handler) GetReservations(context *gin.Context) {
@@ -36,7 +36,7 @@ func (h Handler) AddReservation(context *gin.Context) {
 		return
 	}
 
-	b, err := h.book_repo.GetById(reservation.BookId)
+	b, err := h.bookRepo.GetById(reservation.BookId)
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not fetch book!", err)
 		return
@@ -57,7 +57,7 @@ func (h Handler) AddReservation(context *gin.Context) {
 		return
 	}
 
-	err = h.book_repo.UpdateAvailableCopies(b.ID, b.AvailableCopies-1)
+	err = h.bookRepo.UpdateAvailableCopies(b.ID, b.AvailableCopies-1)
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not update the number of book copies!", err)
 		return
@@ -96,13 +96,13 @@ func (h Handler) CompleteReservation(context *gin.Context) {
 		return
 	}
 
-	b, err := h.book_repo.GetById(reservation.BookId)
+	b, err := h.bookRepo.GetById(reservation.BookId)
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not fetch book!", err)
 		return
 	}
 
-	err = h.book_repo.UpdateAvailableCopies(b.ID, b.AvailableCopies+1)
+	err = h.bookRepo.UpdateAvailableCopies(b.ID, b.AvailableCopies+1)
 	if err != nil {
 		utils.HandleInternalServerError(context, "Could not update the number of book copies!", err)
 		return

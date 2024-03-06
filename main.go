@@ -25,16 +25,16 @@ func main() {
 
 	server := gin.Default()
 
-	book_repo := book.NewRepo(varDb)
-	book_handler := book.NewHandler(book_repo)
+	bookRepo := book.NewRepo(varDb)
+	bookHandler := book.NewHandler(bookRepo)
 
-	reservation_repo := reservation.NewRepo(varDb)
-	reservation_handler := reservation.NewHandler(reservation_repo, book_repo)
+	reservationRepo := reservation.NewRepo(varDb)
+	reservationHandler := reservation.NewHandler(reservationRepo, bookRepo)
 
-	user_repo := user.NewRepo(varDb)
-	user_handler := user.NewHandler(user_repo)
+	userRepo := user.NewRepo(varDb)
+	userHandler := user.NewHandler(userRepo)
 
-	routes.RegisterRoutes(server, book_handler, user_handler, reservation_handler)
+	routes.RegisterRoutes(server, bookHandler, userHandler, reservationHandler)
 
 	err = server.Run(":8080")
 	if err != nil {
